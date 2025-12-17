@@ -80,6 +80,7 @@ function ProductForm() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [searching, setSearching] = useState(false);
+    const [hasSearched, setHasSearched] = useState(false);
     const [editingProduct, setEditingProduct] = useState(null);
     const [editNombre, setEditNombre] = useState('');
     const [editPrecio, setEditPrecio] = useState('');
@@ -131,10 +132,12 @@ function ProductForm() {
     const handleSearch = async () => {
         if (!searchTerm.trim()) {
             setSearchResults([]);
+            setHasSearched(false);
             return;
         }
 
         setSearching(true);
+        setHasSearched(true);
         try {
             const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/products/search?nombre=${encodeURIComponent(searchTerm.trim())}`);
@@ -254,7 +257,7 @@ function ProductForm() {
                     </div>
                 )}
 
-                {searchTerm && searchResults.length === 0 && !searching && (
+                {hasSearched && searchResults.length === 0 && !searching && (
                     <div className="mt-4 p-3 bg-gray-100 text-gray-600 rounded text-center">
                         no se encontraron productos
                     </div>
@@ -816,22 +819,28 @@ function OrderDashboard() {
                         <div className="mb-6">
                             <h3 className="font-medium mb-2">agregar productos</h3>
                             <div className="max-h-40 overflow-y-auto space-y-1">
-                                {allProducts
-                                    .filter(p => !editProducts.find(ep => ep.id === p.id))
-                                    .map(product => (
-                                        <div key={product.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50">
-                                            <span>{product.nombre}</span>
-                                            <div className="flex items-center gap-2">
-                                                <span className="text-sm text-gray-600">${product.precio.toFixed(2)}</span>
-                                                <button
-                                                    onClick={() => handleAddProductToOrder(product)}
-                                                    className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
-                                                >
-                                                    agregar
-                                                </button>
+                                {allProducts.length === 0 ? (
+                                    <p className="text-gray-500 text-sm p-2">cargando productos...</p>
+                                ) : allProducts.filter(p => !editProducts.find(ep => ep.id === p.id)).length === 0 ? (
+                                    <p className="text-gray-500 text-sm p-2">todos los productos ya están en la orden</p>
+                                ) : (
+                                    allProducts
+                                        .filter(p => !editProducts.find(ep => ep.id === p.id))
+                                        .map(product => (
+                                            <div key={product.id} className="flex items-center justify-between p-2 border rounded hover:bg-gray-50">
+                                                <span>{product.nombre}</span>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="text-sm text-gray-600">${product.precio.toFixed(2)}</span>
+                                                    <button
+                                                        onClick={() => handleAddProductToOrder(product)}
+                                                        className="px-2 py-1 bg-green-600 text-white rounded hover:bg-green-700 text-sm"
+                                                    >
+                                                        agregar
+                                                    </button>
+                                                </div>
                                             </div>
-                                        </div>
-                                    ))}
+                                        ))
+                                )}
                             </div>
                         </div>
 
