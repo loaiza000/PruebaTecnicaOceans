@@ -1,6 +1,18 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+
+const calculateTotal = (products) => {
+    return products.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+};
+
+const updateProductQuantity = (products, productId, cantidad) => {
+    return products.map(p =>
+        p.id === productId ? { ...p, cantidad: parseInt(cantidad) || 1 } : p
+    );
+};
+
 export default function Dashboard() {
     const [activeTab, setActiveTab] = useState('products');
     const { user, logout } = useAuth();
@@ -102,7 +114,6 @@ function ProductForm() {
 
         setLoading(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/products`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -115,7 +126,6 @@ function ProductForm() {
                 setNombre('');
                 setPrecio('');
                 setSuccess('producto creado');
-                // Refresh search if there's a search term
                 if (searchTerm) {
                     handleSearch();
                 }
@@ -139,7 +149,6 @@ function ProductForm() {
         setSearching(true);
         setHasSearched(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/products/search?nombre=${encodeURIComponent(searchTerm.trim())}`);
             const data = await response.json();
 
@@ -179,7 +188,6 @@ function ProductForm() {
 
         setLoading(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/products/${editingProduct.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -194,7 +202,6 @@ function ProductForm() {
             if (data.ok) {
                 setSuccess('producto actualizado');
                 setEditingProduct(null);
-                // Refresh search results
                 if (searchTerm) {
                     handleSearch();
                 }
@@ -362,7 +369,6 @@ function OrderForm() {
     const [products, setProducts] = useState([]);
     const [selectedProducts, setSelectedProducts] = useState([]);
     const [error, setError] = useState('');
-    const [success, setSuccess] = useState('');
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -371,7 +377,6 @@ function OrderForm() {
 
     const loadProducts = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/products`);
             const data = await response.json();
             if (data.ok) setProducts(data.data);
@@ -390,20 +395,11 @@ function OrderForm() {
     };
 
     const handleQuantityChange = (productId, cantidad) => {
-        setSelectedProducts(
-            selectedProducts.map(p =>
-                p.id === productId ? { ...p, cantidad: parseInt(cantidad) || 1 } : p
-            )
-        );
-    };
-
-    const calculateTotal = () => {
-        return selectedProducts.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
+        setSelectedProducts(updateProductQuantity(selectedProducts, productId, cantidad));
     };
 
     const handleSubmit = async () => {
         setError('');
-        setSuccess('');
 
         if (selectedProducts.length === 0) {
             setError('selecciona al menos un producto');
@@ -412,7 +408,6 @@ function OrderForm() {
 
         setLoading(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/orders`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -425,7 +420,7 @@ function OrderForm() {
 
             if (data.ok) {
                 setSelectedProducts([]);
-                setSuccess('orden creada');
+                alert('orden creada');
             } else {
                 setError(data.message);
             }
@@ -484,13 +479,12 @@ function OrderForm() {
                     </div>
                     <div className="mt-4 pt-4 border-t flex justify-between text-lg font-bold">
                         <span>total</span>
-                        <span>${calculateTotal().toFixed(2)}</span>
+                        <span>${calculateTotal(selectedProducts).toFixed(2)}</span>
                     </div>
                 </div>
             )}
 
             {error && <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">{error}</div>}
-            {success && <div className="mb-4 p-3 bg-green-100 text-green-700 rounded">{success}</div>}
 
             <button
                 onClick={handleSubmit}
@@ -505,7 +499,8 @@ function OrderForm() {
 
 function OrderDashboard() {
     const [orders, setOrders] = useState([]);
-    const [loading, setLoading] = useState(true);
+    const [loadingOrders, setLoadingOrders] = useState(true);
+    const [updatingOrder, setUpdatingOrder] = useState(false);
     const [error, setError] = useState('');
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
@@ -522,9 +517,8 @@ function OrderDashboard() {
     }, []);
 
     const loadOrders = async () => {
-        setLoading(true);
+        setLoadingOrders(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/orders`);
             const data = await response.json();
             if (data.ok) {
@@ -535,13 +529,12 @@ function OrderDashboard() {
         } catch (err) {
             setError('error al cargar ordenes');
         } finally {
-            setLoading(false);
+            setLoadingOrders(false);
         }
     };
 
     const loadAllProducts = async () => {
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/products`);
             const data = await response.json();
             if (data.ok) {
@@ -563,13 +556,9 @@ function OrderDashboard() {
         setShowSearchResults(true);
         setError('');
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
-
-            // Si el término de búsqueda es un número, buscar por ID
             const isNumeric = /^\d+$/.test(searchTerm.trim());
 
             if (isNumeric) {
-                // Buscar por ID específico
                 const response = await fetch(`${API_URL}/orders/${searchTerm.trim()}`);
                 const data = await response.json();
 
@@ -580,7 +569,6 @@ function OrderDashboard() {
                     setError('orden no encontrada');
                 }
             } else {
-                // Buscar por nombre de producto
                 const response = await fetch(`${API_URL}/orders/search?productoNombre=${encodeURIComponent(searchTerm.trim())}`);
                 const data = await response.json();
 
@@ -612,11 +600,7 @@ function OrderDashboard() {
     };
 
     const handleProductQuantityChange = (productId, cantidad) => {
-        setEditProducts(
-            editProducts.map(p =>
-                p.id === productId ? { ...p, cantidad: parseInt(cantidad) || 1 } : p
-            )
-        );
+        setEditProducts(updateProductQuantity(editProducts, productId, cantidad));
     };
 
     const handleAddProductToOrder = (product) => {
@@ -630,10 +614,6 @@ function OrderDashboard() {
         setEditProducts(editProducts.filter(p => p.id !== productId));
     };
 
-    const calculateEditTotal = () => {
-        return editProducts.reduce((sum, p) => sum + (p.precio * p.cantidad), 0);
-    };
-
     const handleUpdateOrder = async () => {
         setError('');
         setSuccess('');
@@ -643,9 +623,8 @@ function OrderDashboard() {
             return;
         }
 
-        setLoading(true);
+        setUpdatingOrder(true);
         try {
-            const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
             const response = await fetch(`${API_URL}/orders/${editingOrder.id}`, {
                 method: 'PUT',
                 headers: { 'Content-Type': 'application/json' },
@@ -659,7 +638,6 @@ function OrderDashboard() {
             if (data.ok) {
                 setSuccess('orden actualizada');
                 setEditingOrder(null);
-                // Refresh orders or search results
                 if (showSearchResults) {
                     handleSearch();
                 } else {
@@ -671,7 +649,7 @@ function OrderDashboard() {
         } catch (err) {
             setError('error al actualizar orden');
         } finally {
-            setLoading(false);
+            setUpdatingOrder(false);
         }
     };
 
@@ -680,7 +658,7 @@ function OrderDashboard() {
         return date.toLocaleString('es-ES');
     };
 
-    if (loading) {
+    if (loadingOrders) {
         return (
             <div className="bg-white rounded shadow p-6">
                 <p className="text-center text-gray-500">cargando...</p>
@@ -811,7 +789,7 @@ function OrderDashboard() {
                             )}
                             <div className="mt-3 pt-3 border-t flex justify-between text-lg font-bold">
                                 <span>total</span>
-                                <span>${calculateEditTotal().toFixed(2)}</span>
+                                <span>${calculateTotal(editProducts).toFixed(2)}</span>
                             </div>
                         </div>
 
@@ -850,14 +828,14 @@ function OrderDashboard() {
                         <div className="flex gap-2">
                             <button
                                 onClick={handleUpdateOrder}
-                                disabled={loading}
+                                disabled={updatingOrder}
                                 className="flex-1 bg-blue-600 text-white py-2 rounded hover:bg-blue-700 disabled:bg-gray-400"
                             >
-                                {loading ? 'guardando...' : 'guardar cambios'}
+                                {updatingOrder ? 'guardando...' : 'guardar cambios'}
                             </button>
                             <button
                                 onClick={() => setEditingOrder(null)}
-                                disabled={loading}
+                                disabled={updatingOrder}
                                 className="flex-1 bg-gray-600 text-white py-2 rounded hover:bg-gray-700 disabled:bg-gray-400"
                             >
                                 cancelar
