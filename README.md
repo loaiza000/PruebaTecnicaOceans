@@ -2,6 +2,8 @@
 
 Sistema de gestion de productos y ordenes para restaurante
 
+**app:** [https://prueba-tecnica-oceans.vercel.app/login](https://prueba-tecnica-oceans.vercel.app/login)
+
 ##  Stack Tecnologico
 
 - **Frontend**: React + Vite + TailwindCSS
