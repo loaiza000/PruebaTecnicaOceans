@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: oceans-restaurant-backend
+    env: node
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: PORT
+        value: 10000
+      - key: SUPABASE_URL
+        sync: false
+      - key: API_KEY_SUPABASE
+        sync: false
+      - key: JWT_SECRET
+        sync: false
