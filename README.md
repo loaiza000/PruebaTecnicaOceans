@@ -38,7 +38,7 @@ JWT_SECRET=your_jwt_secret
 
 ### Frontend (.env)
 ```env
-VITE_API_URL=http://localhost:3000/api
+VITE_API_URL=https://prueba-tecnica-oceans.vercel.app/login
 ```
 
 ## Base de Datos
