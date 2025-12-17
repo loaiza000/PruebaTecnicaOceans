@@ -34,16 +34,3 @@ export const verifyAdmin = (req, res, next) => {
   }
   next();
 };
-
-export const verifyMeseroOrAdmin = (req, res, next) => {
-  if (req.user.rol !== "mesero" && req.user.rol !== "admin") {
-    return response(
-      res,
-      403,
-      false,
-      "",
-      "acceso denegado, se requiere rol de mesero o administrador"
-    );
-  }
-  next();
-};

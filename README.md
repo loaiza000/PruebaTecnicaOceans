@@ -1,16 +1,14 @@
 # Oceans Restaurant
 
-Sistema de gestión de productos y órdenes para restaurante
+Sistema de gestion de productos y ordenes para restaurante
 
-**app** [https://prueba-tecnica-oceans.vercel.app/login](https://prueba-tecnica-oceans.vercel.app/login)
-
-##  Stack Tecnológico
+##  Stack Tecnologico
 
 - **Frontend**: React + Vite + TailwindCSS
 - **Backend**: Node.js + Express
 - **Base de Datos**: Supabase (PostgreSQL)
 
-##  Instalación Local
+##  Instalacion Local
 
 ### Backend
 ```bash
@@ -26,7 +24,7 @@ npm install
 npm run dev
 ```
 
-## Configuración
+## Configuracion
 
 ### Backend (.env)
 ```env
@@ -69,42 +67,63 @@ Crea las siguientes tablas en Supabase:
 
 ## Funcionalidades
 
-- Autenticación con JWT
-- Gestión de productos
-- Creación de órdenes
-- Dashboard de órdenes
+### Autenticacion
+- Login con JWT
 - Roles (Admin y Mesero)
+- Proteccion de rutas
+
+### Gestion de Productos
+- Crear productos
+- Buscar productos por nombre
+- Editar productos (nombre y precio)
+- Listar todos los productos
+
+### Gestion de Ordenes
+- Crear ordenes con multiples productos
+- Editar ordenes (agregar/quitar productos, cambiar cantidades)
+- Buscar ordenes por ID o nombre de producto
+- Dashboard de ordenes
+- Calculo automatico de totales
 
 ## Estructura del Proyecto
 
 ```
 backend/
   src/
-    controllers/    # Lógica de negocio
+    controllers/    # Logica de negocio
     routes/         # Endpoints API
-    middleware/     # Autenticación y validación
-    helpers/        # Utilidades
+    middleware/     # Autenticacion y validacion
+    helpers/        # Utilidades (response, error handling)
+    models/         # Esquemas de datos (documentacion)
+    config/         # Configuracion de entorno
 
 frontend/
   src/
     components/     # Componentes React
     context/        # Context API (Auth)
-    services/       # Llamadas a API
 ```
 
 ## API Endpoints
 
-### Autenticación
-- `POST /api/auth/login` - Iniciar sesión
+### Autenticacion
+- `POST /api/auth/login` - Iniciar sesion
 - `GET /api/auth/verify` - Verificar token
+- `GET /api/auth/profile` - Obtener perfil del usuario
+- `GET /api/auth/users` - Listar usuarios (solo admin)
 
 ### Productos
-- `GET /api/products` - Listar productos
+- `GET /api/products` - Listar todos los productos
+- `GET /api/products/search?nombre={nombre}` - Buscar productos por nombre
+- `GET /api/products/:id` - Obtener producto por ID
 - `POST /api/products` - Crear producto
+- `PUT /api/products/:id` - **Actualizar producto**
 
-### Órdenes
-- `GET /api/orders` - Listar órdenes
+### Ordenes
+- `GET /api/orders` - Listar todas las ordenes
+- `GET /api/orders/search?productoNombre={nombre}` - Buscar ordenes por producto
+- `GET /api/orders/:id` - Obtener orden por ID
 - `POST /api/orders` - Crear orden
+- `PUT /api/orders/:id` - **Actualizar orden**
 
 ## Despliegue
 
@@ -112,4 +131,5 @@ frontend/
 - **Backend**: Render
 - **Base de Datos**: Supabase
 
-Configura las variables de entorno en cada plataforma según sea necesario
+Configura las variables de entorno en cada plataforma segun sea necesario
+
